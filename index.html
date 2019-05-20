@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no" />
+		<title>练习三国女将</title>
+		<style>
+			*{
+				margin: 0;
+				padding: 0;
+			}
+			a{
+				text-decoration: none;
+				-webkit-tap-highlight-color: rgba(0,0,0,0);
+			}
+			ul,li{
+				list-style: none;
+			}
+			img{
+				display: block;
+			}
+			input{
+				outline: none;
+			}
+			html,body{
+				height: 100%;
+				overflow: hidden;
+			}
+			#wrap{
+				position: relative;
+				width: 100%;
+				height: 100%;
+				overflow: hidden;
+			}
+			
+			#wrap .header,#wrap .bigImg .imgHeader{
+				width: 100%;
+				height: 2rem;
+				text-align: center;
+				line-height: 2rem;
+				background-color: #333;
+				color: #fff;
+				font-family: "宋体";
+				font-size: .8rem;
+			}
+			
+			#wrap .contentWrap,#wrap .bigImg .imgContent{
+				position: absolute;
+				left: 0;
+				right: 0;
+				bottom: 0;
+				top: 2rem;
+				overflow: hidden;
+				/*background-color: gold;*/
+			}
+			
+			#wrap .contentWrap .content{
+				position: relative;
+			}
+			
+			#wrap .contentWrap .content .contentList{
+				overflow: hidden;
+			}
+			#wrap .contentWrap .content .contentList li{
+				float: left;
+				width: 7rem;
+				height: 7rem;
+				margin: .5rem;
+				background-image: url(img/loadingImg.gif);
+				background-position: center;
+				background-repeat: no-repeat;
+			}
+				
+			#wrap .contentWrap .content .contentList li img{
+				width: 100%;
+				height: 100%;
+				border-radius: 10px;
+				opacity: 0;
+				transition: opacity 5s;
+			}	
+			
+			#wrap .contentWrap .content .footer{
+			position: absolute;
+			left: 0;
+			bottom: -4rem;
+			width: 100%;
+			height: 4rem;
+			font-family: '宋体';
+			font-size: .8rem;
+			text-align: center;
+			line-height: 4rem;
+			/*默认隐藏底部结构*/
+			transform: scale(0);
+		}
+		#wrap .scrollBar{
+			position: absolute;
+			right: 0;
+			top: 2rem;
+			width: 5px;
+			height: 100px;
+			background-color: orange;
+			opacity: 0;
+			transition: opacity 1s;
+			
+		}
+		#wrap .bigImg{
+			position: absolute;
+			top: 0;
+			right: 0;
+			width: 100%;
+			height: 100%;
+			transform: scale(0);
+			transition: transform 2s;
+		}
+		#wrap .bigImg .imgHeader a{
+			float: right;
+			color: #FFFFFF;
+			margin-right: 10px;
+			margin-left: -10px;
+		}
+		#wrap .bigImg .imgContent{
+			background-color: #eee;
+		}
+		#wrap .bigImg .imgContent img{
+			position: absolute;
+			left: 0;
+			right: 0;
+			top: 0;
+			bottom: 0;
+			margin: auto;
+			width: 12rem;
+			height: 12rem;
+		}
+		</style>
+	</head>
+	<body>
+		<div id="wrap">
+			<header class="header">
+				三国女将
+			</header>
+			<div class="contentWrap">
+				<div class="content">
+					<ul class="contentList">
+						<!--<li>
+							<img src="img/1.jpg"/>
+						</li>
+						<li>
+							<img src="img/2.jpg"/>
+						</li>
+						<li>
+							<img src="img/3.jpg"/>
+						</li>
+						<li>
+							<img src="img/4.jpg"/>
+						</li>
+						<li>
+							<img src="img/5.jpg"/>
+						</li>
+						<li>
+							<img src="img/6.jpg"/>
+						</li>
+						<li>
+							<img src="img/7.jpg"/>
+						</li>
+						<li>
+							<img src="img/8.jpg"/>
+						</li>-->
+					</ul>
+					<div class="footer">
+					上滑加载更多
+					</div>
+				</div>
+				
+			</div>
+			<div class="scrollBar"></div>
+			<div class="bigImg">
+				<header class="imgHeader">
+					大图预览
+					<a href="javascript:;">×</a>
+				</header>
+				<div class="imgContent">
+					<img src=""/>
+				</div>
+			</div>
+		</div>
+	</body>
+	<script src="js/drag.js"></script>
+	<script src="js/transform.js"></script>
+	<script src="js/gesture.js"></script>
+	<script>
+		!(function(){
+			var width=document.documentElement.clientWidth;
+			var styleNode=document.createElement('style');
+			styleNode.innerHTML='html{font-size:'+ width/16 +'px !important;}'
+			document.head.appendChild(styleNode);
+		})()
+		
+		document.addEventListener('touchstart',function(event){
+			event.preventDefault();
+		});
+		
+		var aNodes=document.querySelectorAll('a');
+		for (var i=0;i<aNodes.length;i++) {
+			aNodes[i].addEventListener('touchstart',function(){
+				window.location.href=this.href;
+			})
+		}
+		
+		//第一步
+		var arr=[];
+		var header=document.querySelector('#wrap .header');
+		var contentWrap=document.querySelector('#wrap .contentWrap');
+		var content=document.querySelector('#wrap .contentWrap .content');
+		var footer = document.querySelector('#wrap .contentWrap .content .footer');
+		var scrollBar=document.querySelector('#wrap .scrollBar');
+		var bigImg=document.querySelector('#wrap .bigImg ');
+		var imgNode=document.querySelector('#wrap .bigImg .imgContent img');
+		var close=document.querySelector('#wrap .bigImg .imgHeader a')
+		var isMove=false;
+		var isFooter=false;
+		for (var i=0;i<20;i++) {
+			arr.push('img/'+ (i%18+1) + '.jpg')
+		}
+//		console.log(arr)
+
+		//第二步
+		var contentList=document.querySelector('#wrap .contentWrap .content .contentList'); 
+		var start=0;
+		var length=12;
+		var end=0;
+		createLi();
+		
+		var scrollScale=contentWrap.clientHeight/content.offsetHeight;
+		scrollBar.style.height=contentWrap.clientHeight * scrollScale + 'px';
+		
+		
+		function createLi(){
+			
+			if (start>=arr.length) {
+				transformCss(footer,'scale',1);
+				
+				footer.innerText='没有了，别滑了！';
+				
+				setTimeout(function(){
+					var lastY = contentWrap.clientHeight - content.offsetHeight;
+					content.style.transition = '1s';
+					transformCss(content,'translateY',lastY)
+				},1000);
+				
+				return;
+			} 
+			
+			end=start+length;
+			
+			end= end>= arr.length?arr.length:end;
+			
+			for (var i=start;i<end;i++) {
+				var liNode=document.createElement('li');
+				liNode.addEventListener('touchmove',function(){
+					isMove=true;
+				});
+				
+				liNode.addEventListener('touchend',function(){
+					if (!isMove) {
+						var left=this.getBoundingClientRect().left;
+						var top=this.getBoundingClientRect().top;
+                  bigImg.style.transformOrigin= left + 'px ' + top + 'px' ;
+						transformCss(bigImg,'scale',1);
+						imgNode.src=this.imgSrc;
+					} 
+					isMove=false;
+				})
+				
+				
+				//加属性
+				liNode.imgSrc = arr[i];
+				//加属性
+				liNode.isLoad=false;
+				contentList.appendChild(liNode);
+		 	};
+			start=end;
+			//执行懒加载
+			lazyLoad();
+		}
+		
+//		var header=document.querySelector('#wrap .header');
+		function lazyLoad(){
+			var liNodes=contentList.querySelectorAll('li');
+			var h = header.offsetHeight;
+			var H=document.documentElement.clientHeight;
+			for (var i=0;i<liNodes.length;i++ ) {
+				var liH=liNodes[i].getBoundingClientRect().top;
+				if (!liNodes[i].isLoad && liH>h && liH<H) {
+					loadImg(liNodes[i]);
+				} 
+			}
+		}
+		
+		function loadImg(liEle){
+			liEle.isLoad=true;
+			var img=new Image();
+			img.src=liEle.imgSrc;
+			
+			//加载
+			img.onload=function(){
+				img.style.opacity=1;
+			}
+			
+			liEle.appendChild(img);
+		}
+		
+		//竖向滑屏
+		var callback={
+			
+			start:function(){
+				var h=contentWrap.clientHeight-content.offsetHeight;
+				var H=transformCss(content,'translateY');
+				if (Math.abs(h)<=Math.abs(H)) { 		
+					isFooter=true;
+				} 
+				scrollBar.style.opacity=1;
+			},
+			
+			move:function(){
+			//要判断start里面已经达到了底部出现的条件，接着计算底部出现的比例值动态设置
+			if(isFooter){
+				var h = contentWrap.clientHeight - content.offsetHeight;
+				var H = transformCss(content,'translateY');
+				var footerH = Math.abs(H) - Math.abs(h);
+				var footerHeight = footer.offsetHeight;
+				var footerScale = footerH / footerHeight;
+				footerScale = footerScale > 1?1:footerScale;
+				transformCss(footer,'scale',footerScale);
+				}
+				lazyLoad();
+				scrollBar.style.opacity=1;
+				var scrollScale = contentWrap.clientHeight / content.offsetHeight;
+				var lastY=transformCss(content,'translateY');
+				transformCss(scrollBar,'translateY',-lastY * scrollScale);
+				
+			},
+			
+			endTrue:function(timer){
+				
+				var h = contentWrap.clientHeight - content.offsetHeight;
+				var H = transformCss(content,'translateY');
+				var footerH = Math.abs(H) - Math.abs(h);
+				var footerHeight = footer.offsetHeight;
+				if (isFooter&&footerH>=footerHeight) {
+					isFooter=false;
+					transformCss(footer,'scale',0);
+					
+					clearInterval(timer);
+					createLi();
+					var scrollScale = contentWrap.clientHeight / content.offsetHeight;
+					scrollBar.style.height = contentWrap.clientHeight * scrollScale + 'px';
+				} 
+				scrollBar.style.opacity=0;
+			},
+			
+			end:function(){
+				scrollBar.style.opacity=0;
+			}
+			
+		}
+		
+		
+		contentDrag(contentWrap,callback);
+		
+		close.addEventListener('touchstart',function(){
+		transformCss(bigImg,'scale',0);
+		
+		transformCss(imgNode,'rotate',0);
+		transformCss(imgNode,'scale',1);
+		})
+		
+		
+		var startRotate = 0;
+		var startScale = 1;
+		var callback = {
+			//真真正正被操作的元素多指事件的效果
+			start:function(){
+				//获取元素本身存在的scale值，因为下一次缩放要在这个基础上进行缩放
+				startRotate = transformCss(imgNode,'rotate');
+				startScale = transformCss(imgNode,'scale');
+			},
+			change:function(ev){
+				//在原有的基础上去设置我们的缩放比例。两个值是相乘的关系
+				transformCss(imgNode,'rotate',startRotate + ev.rotate);
+				transformCss(imgNode,'scale',startScale * ev.scale);
+			},
+			end:function(){
+			}
+		} 
+		gesture(imgNode,callback);
+		
+		
+	</script>
+</html>
